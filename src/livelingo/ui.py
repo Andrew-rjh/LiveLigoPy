@@ -1,12 +1,9 @@
-"""Simple ImGui UI placeholder for LiveLingo."""
-
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
 import glfw
-
+import OpenGL.GL as gl  # 선택: 화면 클리어 용
 
 def run_ui() -> None:
-    """Launch a basic ImGui window displaying placeholder text."""
     if not glfw.init():
         raise RuntimeError("Could not initialize GLFW")
 
@@ -16,19 +13,31 @@ def run_ui() -> None:
         raise RuntimeError("Failed to create GLFW window")
 
     glfw.make_context_current(window)
+
+    # ★ ImGui 컨텍스트 생성 (중요)
+    imgui.create_context()
+
     impl = GlfwRenderer(window)
 
-    while not glfw.window_should_close(window):
-        glfw.poll_events()
-        impl.process_inputs()
+    try:
+        while not glfw.window_should_close(window):
+            glfw.poll_events()
+            impl.process_inputs()
 
-        imgui.new_frame()
-        imgui.begin("LiveLingo")
-        imgui.text("ImGui UI placeholder")
-        imgui.end()
-        imgui.render()
-        impl.render(imgui.get_draw_data())
-        glfw.swap_buffers(window)
+            imgui.new_frame()
 
-    impl.shutdown()
-    glfw.terminate()
+            imgui.begin("LiveLingo")
+            imgui.text("ImGui UI placeholder")
+            imgui.end()
+
+            # 선택: 화면 클리어
+            gl.glClearColor(0.1, 0.1, 0.1, 1.0)
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+
+            imgui.render()
+            impl.render(imgui.get_draw_data())
+            glfw.swap_buffers(window)
+    finally:
+        impl.shutdown()
+        imgui.destroy_context()   # ★ 깔끔 종료
+        glfw.terminate()
